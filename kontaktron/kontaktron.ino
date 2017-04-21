@@ -3,10 +3,6 @@
 //z korby co sekunde czasy nie sa w miare dobre dlatego skladujemy je co sekunde 
 
 
-
-
-
-
 const int rozmiar = 5;
 
 // kontraktor 1 - korba
@@ -29,11 +25,6 @@ static unsigned long lastTime2_kon3;
 volatile unsigned int set1Second_kon3;
 static unsigned long lastTime_kon3;
 
-
-int tabP1[rozmiar + 3];  //tablcia z czasami od jednego pedalu lewego
-int tabP2[rozmiar + 3]; //tablcia z czasami od jednego pedalu prawego
-int tempTabP1[rozmiar +3];
-int tempTabP2[rozmiar + 3];
 unsigned int timer;
 
 
@@ -71,6 +62,8 @@ void loop()
     if (tab_kon1[4] != 0 && tab_kon2[4] != 0)
     {
       tabToTemp(tab_kon1, temp_tab_kon1, tab_kon2, temp_tab_kon2);
+      tab_index_kon1 = 0;
+      tab_index_kon2 = 0;
       tab_kon1[4] = 0;
       tab_kon2[4] = 0;
       Serial.print("KontaktronPedaly");
