@@ -29,7 +29,7 @@ static unsigned long lastTime2_kon3;
 volatile unsigned int set1Second_kon3;
 static unsigned long lastTime_kon3;
 
-const int rozmiar = 5;
+
 int tabP1[rozmiar + 3];  //tablcia z czasami od jednego pedalu lewego
 int tabP2[rozmiar + 3]; //tablcia z czasami od jednego pedalu prawego
 int tempTabP1[rozmiar +3];
@@ -153,27 +153,4 @@ void onStep_3()
 }
  
 
-//funkcja kopiująca kopiujaca elementy tablicy
-void tabToTemp(int *tabP1, int *tempTabP1,int *tabP2,int *tempTab2)
-{
-	
-	for (int i = 0; i < (rozmiar-1); i++)
-	{
-		tempTabP1[i] = tabP1[i];
-	}
-	for (int i = 0; i < (rozmiar - 1); i++)
-	{
-		tempTabP2[i] = tabP2[i];
-	}
-}
-//funkcja wysyla na Seriala czasy z pedalow
-void sendToSerial(int *tab)
-{
-	for (int i = 0; i < rozmiar - 1; i++)
-	{
-		Serial.print(" ");
-		Serial.print(tabP1[i]);
-		Serial.print(tabP2[i]);
 
-	}
-}
