@@ -1,4 +1,12 @@
 
+//bedziemy wysylac czasy i obroty co sekunde
+//z korby co sekunde czasy nie sa w miare dobre dlatego skladujemy je co sekunde 
+
+
+
+
+
+
 const int rozmiar = 5;
 
 // kontraktor 1 - korba
@@ -21,6 +29,11 @@ static unsigned long lastTime2_kon3;
 volatile unsigned int set1Second_kon3;
 static unsigned long lastTime_kon3;
 
+const int rozmiar = 5;
+int tabP1[rozmiar + 3];  //tablcia z czasami od jednego pedalu lewego
+int tabP2[rozmiar + 3]; //tablcia z czasami od jednego pedalu prawego
+int tempTabP1[rozmiar +3];
+int tempTabP2[rozmiar + 3];
 unsigned int timer;
 
 
@@ -36,6 +49,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(3), onStep_2, RISING);   // kontraktor 2 - korba
   attachInterrupt(digitalPinToInterrupt(4), onStep_3, RISING);   // kontraktor 3 - kolo
   timer = millis();
+
 }
 
 void loop()
@@ -111,8 +125,9 @@ void onStep_1()
   lastTime_kon1 = timeNow_kon1;
   tab_kon1[tab_index_kon1] = lastTime2_kon1;
   tab_index_kon1++;
-}
 
+}
+//funkcja do przerwania kontaktron kontaktron
 void onStep_2()
 {
   unsigned long timeNow_kon2 = millis();
@@ -122,8 +137,9 @@ void onStep_2()
   lastTime_kon2 = timeNow_kon2;
   tab_kon2[tab_index_kon2] = lastTime2_kon2;
   tab_index_kon2++;
-}
 
+}
+//funkcja do przerwania kontaktron kolo
 void onStep_3()
 {
   unsigned long timeNow_kon3 = millis();
@@ -133,4 +149,31 @@ void onStep_3()
     return;
   steps_kon3++;
   lastTime_kon3 = timeNow_kon3;
+
+}
+ 
+
+//funkcja kopiująca kopiujaca elementy tablicy
+void tabToTemp(int *tabP1, int *tempTabP1,int *tabP2,int *tempTab2)
+{
+	
+	for (int i = 0; i < (rozmiar-1); i++)
+	{
+		tempTabP1[i] = tabP1[i];
+	}
+	for (int i = 0; i < (rozmiar - 1); i++)
+	{
+		tempTabP2[i] = tabP2[i];
+	}
+}
+//funkcja wysyla na Seriala czasy z pedalow
+void sendToSerial(int *tab)
+{
+	for (int i = 0; i < rozmiar - 1; i++)
+	{
+		Serial.print(" ");
+		Serial.print(tabP1[i]);
+		Serial.print(tabP2[i]);
+
+	}
 }
