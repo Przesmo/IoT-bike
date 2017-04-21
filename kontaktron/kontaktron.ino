@@ -51,13 +51,13 @@ void loop()
     timer = millis()+1000;
 
 
-    // kontaktron 3
+    /*// kontaktron 3
     Serial.print("Steps3: ");
     Serial.println(steps_kon3);
     Serial.print("Time3: ");
     Serial.println(set1Second_kon3);
     Serial.print("Velocity: ");
-    Serial.println(((steps_kon3*1000*10000)/set1Second_kon3)*3.6);  // nie dziala poprawnie bo liczy jak na int'ach
+    Serial.println(((steps_kon3*1000*10000)/set1Second_kon3)*3.6);  // nie dziala poprawnie bo liczy jak na int'ach*/
 
     if (tab_kon1[4] != 0 && tab_kon2[4] != 0)
     {
@@ -103,9 +103,7 @@ void sendToSerial(int *tab)
 	for (int i = 0; i < rozmiar - 1; i++)
 	{
 		Serial.print(" ");
-		Serial.print(tab_kon1[i]);
-		Serial.print(tab_kon2[i]);
-
+		Serial.print(tab[i]);
 	}
 }
 
