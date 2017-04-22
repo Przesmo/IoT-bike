@@ -3,5 +3,5 @@
 
 void addd(int a, int b)
 {
-	cout << "dziala" << a + b;
+	//cout << "dziala" << a + b;
 }
