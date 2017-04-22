@@ -5,9 +5,12 @@
 //wedlug ustalonego wczesniej json'a plik:: nowe_strukturt.txt
 
 //naciski trzeba przeliczyc aby wynik byl podawany w Newton
-bool startMeasure;
+bool startMeasure; 
 const int lewyPin = A0;
-volatile unsigned int naciskPedalPrawy = 0;
+int counter;
+volatile float lPedal[20]; // tablcia do przechowywania nacisku na lewy pedal 
+volatile float maksLPedal;
+volatile unsigned  naciskPedalPrawy = 0;
 volatile unsigned int naciskPedalLewy = 100;
 //
 volatile unsigned int naciskKoloPrzod = 200;
@@ -30,21 +33,35 @@ volatile unsigned int wykresEKG = 1000;
 volatile unsigned int puls = 1100;  //wyznaczany na podstawie ekg przy pomocy funkcji z biblioteki adafruit
 
 unsigned int  timer; //zmienna pomocnicza do wyznaczania jednej sekundy
-
+volatile int maximumLewy; //maksymalna wartosc nacisku na lewy pedal
 void setup() {
   Serial.begin(9600);
   mlx.begin();
   timer = millis();
+  counter = 1;
 }
 
 void loop() {
+  delay(10);
+  
+  if(startMeasure == true && counter<21) //warunek logiczny rozpoaczynajacy pobieranie pomiarow naciskow z lewego pedalu
+ {
+    lPedal[counter] = analogRead(lewyPin);
+    if(counter ==20) 
+    {
+     maksLPedal =  findMax(lPedal);
+      counter = 0;
+      startMeasure = false;
+      
+    }
+    counter++;
+    
+ }
+ 
  if(millis()>timer)
  {
   timer = millis()+1000;
-  if(startMeasure)
-  {
-    
-  }
+  
   sendData(naciskPedalPrawy,naciskPedalLewy,naciskKoloPrzod,naciskKoloTyl, mlx.readObjectTempC(), mlx.readAmbientTempC(),tyl,czasTrwania,czasObrotuKorbaLewa,czasObrotuKorbaPrawa,wykresEKG,puls);
  
  }
@@ -114,9 +131,14 @@ Serial.println();
   puls++;
 }
 
-double designateForce()
+float findMax(volatile float *tab)
 {
-  
+  maximumLewy = tab[0];
+  for(int i = 0;i<21;i++)
+  {
+    if(tab[i]>maximumLewy) maximumLewy = tab[i];
+  }
+  return maximumLewy;
 }
 
 
