@@ -1,0 +1,78 @@
+krystian.kucharski@elmodis.com
+503 620 863
+
+
+Struktura danych
+1.Tensometr - maksymalny nacisk lewego i prawego pedala przy jednym obrocie
+
+{
+	naciskPedalPrawy: 50,   [Newton]
+	naciskPedalLewy: 70,    [Newton]
+	czas: 123456789         [unixtime]
+}
+
+2.Tensometr - przedni i tylni nacisk kola
+{
+	naciskKoloPrzod: 50, [Newton]
+	naciskKoloTyl: 50,   [Newton]
+	czas: 123456789	     [unixtime]
+}
+
+3.Pirometr - temperatura tylniego kola - obciazenia
+{
+
+	tempKoloTyl: 50,    [C]
+	tempOtoczenia: 50,  [C]
+	czas: 123456789     [unixtime]
+}
+
+4. EKG - do sprawdzenia 
+{
+	ekg: -	
+}
+
+5.Kontaktron - ilosc obrotów tylniego kola w ciagu jednej z dokladnoscia do 1/4 obwodu
+{
+	obrotyKolo:{
+		tyl: 4,   [1/4 Obw. kola -> Obwód kola = 2m]
+		czarTrwania:1000    [ms]	
+	},   
+	czas: 12345678890   [unixtime]	
+}
+
+6.Kontaktron - czas jednego obrotu korby lewej oraz prawej
+{
+	czasObrotuKorbaLewa = 5000, [ms]
+	czasObrotuKorbaPrawa = 700, [ms]
+	czas: 123456789            [unixtime]	
+}
+
+
+--------------------------------------------------------------------
+
+{
+	naciskPedalPrawy: 50,             [Newton]
+	naciskPedalLewy: 70,              [Newton]
+	naciskKoloPrzod: 50,              [Newton]
+	naciskKoloTyl: 50,                [Newton]
+	tempKoloTyl: 50,                  [C]
+	tempOtoczenia: 50,                [C]
+	obrotyKolo:{
+		tyl: 4,                   [1/4 Obw. kola -> Obwód kola = 2m]
+		czarTrwania:1000          [ms]	
+	},   
+	czasObrotuKorbaLewa = 5000,       [ms]
+	czasObrotuKorbaPrawa = 700,       [ms]
+	ekg: {?????},                     []
+	czas: 123456789                   [unixtime]	
+}
+ekg wysylac do gateway przebieg oraz pulsy, gdzie beda skladowane na dysku i odczytywane stamtad 
+
+
+void sendData(volatile unsigned int &naciskPedalPrawy,volatile unsigned int &naciskPedalLewy,volatile unsigned int &naciskKoloPrzod,volatile unsigned int & naciskKoloTyl,volatile unsigned int tempKoloTyl,volatile unsigned int & tempOtoczenia,volatile unsigned int &tyl,volatile unsigned int &czasTrwania,volatile unsigned int &czasObrotuKorbaLewa,)
+//,volatile unsigned int &czasObrotuKorbaLewa,volatile unsigned int &czasObrotuKorbaPrawa)//,volatile unsigned int &wykresEKG,volatile unsigned int &puls)//)
+
+
+1. uczestniczy musza sciagnac odpowiednie biblioteki:
+- Pirometr: https://botland.com.pl/czujniki-temperatury/4594-cyfrowy-termometr-na-podczerwien-gy-906-mlx90614esf-i2c-modul-pirometr.html,
+- pulsometr: https://github.com/DFRobot/DFRobot_Heartrate,
