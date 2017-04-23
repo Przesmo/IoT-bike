@@ -11,12 +11,14 @@ const int nLPin = A0;
 const int nPPin = A1;
 int counterL;
 int counterP;
-volatile float lPedal[20]; // tablica do przechowywania nacisku na lewy pedal
-volatile float pPedal[20]; //tablica do przechowywania nacisku na prawy pedal
+const int liczbaPomiarowNacisk = 20;
+volatile float lPedal[liczbaPomiarowNacisk]; // tablica do przechowywania nacisku na lewy pedal
+volatile float pPedal[liczbaPomiarowNacisk]; //tablica do przechowywania nacisku na prawy pedal
 volatile float maksLPedal;
 volatile float maksPPedal;
 volatile unsigned int  naciskPedalPrawy = 0;
 volatile unsigned int naciskPedalLewy = 100;
+
 
 //NACISK NA PRZEDNI ORAZ TYLNIE KOLO
 volatile float naciskPrz;
@@ -30,8 +32,8 @@ volatile unsigned int naciskKoloTyl = 300;
 
 //temperatura podawana w stopniach celsjusza
 //TEMPERATURA TYLNIEGO KOLO + TEMPERATURA OTOCZENIA
-byte tempKoloTyl_pin = 5; //temperatura obiektu
-byte tempOtoczenia_pin = 6; //temperatura otoczenia
+byte tempKoloTylPin = 5; //temperatura obiektu
+byte tempOtoczeniaPin = 6; //temperatura otoczenia
 volatile float tempKoloTyl;
 volatile float tempOtoczenia;
 
@@ -64,12 +66,12 @@ unsigned int  timer; //zmienna pomocnicza do wyznaczania jednej sekundy
 
 
 void setup() {
-  pinMode(tempKoloTyl_pin, INPUT);
-  pinMode(tempOtoczenia_pin, INPUT);
+  pinMode(tempKoloTylPin, INPUT);
+  pinMode(tempOtoczeniaPin, INPUT);
   Serial.begin(9600);
-  timer = millis();
-  counterL = 1; //do zliczania pomiarow nacisku na lewy pedal
-  counterP = 1; //do zliczania pomiarow nacisku na prawy pedal
+  timer = millis()+1000;
+  counterL = 0; //do zliczania pomiarow nacisku na lewy pedal
+  counterP = 0; //do zliczania pomiarow nacisku na prawy pedal
   attachInterrupt(digitalPinToInterrupt(kLPin), onStepLewa, RISING); // przerwanie dla lewego pedalu obslugujaca funkcje zliczania czasu jednego okrazenia korby
   attachInterrupt(digitalPinToInterrupt(kPPin), onStepPrawa, RISING); // przerwanie dla lewego pedalu obslugujaca funkcje zliczania czasu jednego okrazenia korby
   attachInterrupt(digitalPinToInterrupt(kPin), onStepKolo, RISING);   // przerwanie dla tylnego kolo mamy cztery(albo dwa) punkty pomiarowe
@@ -79,35 +81,26 @@ void setup() {
 
 void loop() {
   delay(10);
-  //odczytanie PWM (temperatury)
-  tempKoloTyl = pulseIn(tempKoloTyl_pin, HIGH);
-  tempOtoczenia = pulseIn(tempOtoczenia_pin, HIGH);
-  tempKoloTyl = tempKoloTyl/10;
-  tempOtoczenia = tempOtoczenia/10;
-  //odczytanie wartosci nacisku z przedniego i tylnego kola odejmujemy offset
-  naciskPrz = analogRead(nPrzPin) - offSetPrz;
-  naciskT = analogRead(nTPin) - offSetT;
-  if(startMeasureL == true && counterL<21) //warunek logiczny rozpoaczynajacy pobieranie pomiarow naciskow z lewego pedalu
+  if(startMeasureL == true && counterL < liczbaPomiarowNacisk + 1) //warunek logiczny rozpoaczynajacy pobieranie pomiarow naciskow z lewego pedalu
  {
     lPedal[counterL] = analogRead(nLPin);
-    if(counterL ==20)
+    if(counterL == liczbaPomiarowNacisk)
     {
      maksLPedal =  findMax(lPedal);
-      counterL = 0;
-      startMeasureL = false;
-
+     counterL = -1; // po wyjsciu z if counter zwiekszy sie o 1 i bedzie 0
+     startMeasureL = false;
     }
     counterL++;
  }
 
- if(startMeasureP == true && counterP<21) //warunek logiczny rozpoaczynajacy pobieranie pomiarow naciskow z prawego pedalu
+ if(startMeasureP == true && counterP < liczbaPomiarowNacisk + 1) //warunek logiczny rozpoaczynajacy pobieranie pomiarow naciskow z prawego pedalu
  {
     pPedal[counterP] = analogRead(nPPin);
-    if(counterP ==20)
+    if(counterP == liczbaPomiarowNacisk)
     {
      maksPPedal =  findMax(pPedal);
-      counterP = 0;
-      startMeasureP = false;
+     counterP = -1; // po wyjsciu z if counter zwiekszy sie o 1 i bedzie 0
+     startMeasureP = false;
     }
     counterP++;
  }
@@ -115,22 +108,33 @@ void loop() {
  if(millis()>timer)
  {
   timer = millis()+1000;
+
+  //odczytanie PWM (temperatury)
+  tempKoloTyl = pulseIn(tempKoloTylPin, HIGH);
+  tempOtoczenia = pulseIn(tempOtoczeniaPin, HIGH);
+  tempKoloTyl = tempKoloTyl/10;
+  tempOtoczenia = tempOtoczenia/10;
+
+  //odczytanie wartosci nacisku z przedniego i tylnego kola odejmujemy offset
+  naciskPrz = analogRead(nPrzPin) - offSetPrz;
+  naciskT = analogRead(nTPin) - offSetT;
+
   //sprawdzac czy ktos siedzi na rowerze poprzez zczytanie nacisku pod kolami wartosci powinny byc mniejsze niz 50 plus wyliczyc offset jezeli ktos siedzi i wysylac tylko pomiar rozniacy sie od offsetu
   sendData(maksPPedal,maksLPedal,naciskPrz,naciskT, tempOtoczenia, tempKoloTyl,nrInterrupt,timeLapK,timeLapL,timeLapP,wykresEKG,puls);
-
+  maksLPedal = 0; // zerowanie wartosc (chyba niepotrzebne ale moze byc dla pewnosci)
+  maksPPedal = 0;
  }
 }
 
 
-
+//skladnia json'a jest okej (wrzucalem do interpretera)
 void sendData(volatile float &naciskPedalPrawy,volatile float &naciskPedalLewy,volatile float &naciskKoloPrzod,volatile float &naciskKoloTyl,double tempKoloTyl,double tempOtoczenia,volatile int &tyl,volatile unsigned int &czasTrwania,volatile unsigned int &czasObrotuKorbaLewa,volatile unsigned int &czasObrotuKorbaPrawa,volatile unsigned int &wykresEKG,volatile unsigned int &puls)
 {
-  timer = millis()+1000;
   Serial.print("{\"naciskPedalPrawy\": ");
   Serial.print(naciskPedalPrawy);
   Serial.print(",");
   Serial.print("\"naciskPedalLewy\": ");
-  Serial.print(naciskPedalPrawy);
+  Serial.print(naciskPedalLewy);
   Serial.print(",");
   Serial.print("\"naciskKoloPrzod\": ");
   Serial.print(naciskKoloPrzod);
@@ -144,7 +148,7 @@ void sendData(volatile float &naciskPedalPrawy,volatile float &naciskPedalLewy,v
   Serial.print("\"tempOtoczenia\": ");
   Serial.print(tempOtoczenia);
   Serial.print(",");
-  Serial.print("\"obrotyKolo\":{");  //sprawdzic skladnie
+  Serial.print("\"obrotyKolo\": {");
   Serial.print("\"tyl\": ");
   Serial.print(tyl);
   Serial.print(",");
@@ -157,7 +161,7 @@ void sendData(volatile float &naciskPedalPrawy,volatile float &naciskPedalLewy,v
   Serial.print("\"czasObrotuKorbaPrawa\": ");
   Serial.print(czasObrotuKorbaPrawa);
   Serial.print(",");
-  Serial.print("\"EKG\":{");  //sprawdzic skladnie
+  Serial.print("\"EKG\": {");
   Serial.print("\"wykresEKG\": ");
   Serial.print(wykresEKG);
   Serial.print(",");
@@ -167,25 +171,25 @@ void sendData(volatile float &naciskPedalPrawy,volatile float &naciskPedalLewy,v
   Serial.print("\"czas\": ");
   Serial.print(millis());
   Serial.print("}");
-Serial.println();
+  Serial.println();
 
   //naciskPedalPrawy++;
   //naciskPedalLewy++;
-  naciskKoloPrzod++;
-  naciskKoloTyl++;
- // tempKoloTyl++;
+  //naciskKoloPrzod++;
+  //naciskKoloTyl++;
+  //tempKoloTyl++;
   //tempOtoczenia++;
-  tyl++;
+  //tyl++;
   //czasObrotuKorbaLewa++;
-  czasObrotuKorbaPrawa++;
-  wykresEKG++;
-  puls++;
+  //czasObrotuKorbaPrawa++;
+  //wykresEKG++;
+  //puls++;
 }
 
 float findMax(volatile float *tab)
 {
  int  maximum = tab[0];
-  for(int i = 0;i<21;i++)
+  for(int i = 1; i < liczbaPomiarowNacisk + 1; i++)
   {
     if(tab[i]>maximum) maximum = tab[i];
   }
@@ -194,7 +198,7 @@ float findMax(volatile float *tab)
 
 void onStepLewa()
 {
-   timeNowKL = millis();
+  timeNowKL = millis();
   timeLapL = timeNowKL - lastTimeKL;
   if (timeLapL < 50)
     return;
@@ -204,7 +208,7 @@ void onStepLewa()
 
 void onStepPrawa()
 {
-   timeNowKP = millis();
+  timeNowKP = millis();
   timeLapP = timeNowKP - lastTimeKP;
   if (timeLapP < 50)
     return;
